@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrickTeller — Pick-a-Brick &amp; Stuffed Ziploc Packing Calculator</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --text: #1a202c;
+      --muted: #5a6578;
+      --accent: #d9232e;
+      --accent-dark: #b31922;
+      --green: #15803d;
+      --green-bg: #dcfce7;
+      --amber: #b45309;
+      --amber-bg: #fef3c7;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: #111827;
+      color: #fff;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      border-bottom: 4px solid var(--accent);
+    }
+    header h1 { margin: 0; font-size: 1.45rem; letter-spacing: -0.02em; }
+    header p { margin: 0.35rem 0 0; color: #cbd5e1; font-size: 0.92rem; }
+    .container {
+      max-width: 760px;
+      margin: 1.25rem auto;
+      padding: 0 1rem 3rem;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.9rem;
+    }
+    @media (max-width: 600px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.6rem 0.7rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.98rem;
+      background: #fff;
+      color: var(--text);
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.35rem;
+    }
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    @media (max-width: 600px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+    .stat-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem;
+      text-align: center;
+    }
+    .stat-box.highlight {
+      border-color: #93c5fd;
+      background: #eff6ff;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+    .stat-val { font-size: 1.55rem; font-weight: 800; margin: 0.2rem 0; }
+    .stat-sub { font-size: 0.8rem; color: var(--muted); }
+    .verdict {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.98rem;
+    }
+    .verdict.worth-it { background: var(--green-bg); color: var(--green); border: 1px solid #86efac; }
+    .verdict.skip-it { background: var(--amber-bg); color: var(--amber); border: 1px solid #fcd34d; }
+    .tip-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 0.95rem 1.1rem;
+      margin-top: 1rem;
+    }
+    .tip-btn {
+      display: inline-block;
+      background: #ffdd00;
+      color: #111827;
+      text-decoration: none;
+      font-weight: 700;
+      padding: 0.55rem 1rem;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      border: 1px solid #eab308;
+    }
+    .tip-btn:hover { background: #facc15; }
+    .domains-footer {
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+    .domain-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+    .domain-pill {
+      display: inline-block;
+      padding: 0.35rem 0.7rem;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+    .domain-pill:hover { background: #e2e8f0; border-color: #94a3b8; }
+    details { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
+    summary { cursor: pointer; font-weight: 600; color: var(--text); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>BrickTeller Packing &amp; Wage ROI Calculator</h1>
+  <p>Pick-a-Brick Boxes &amp; Stuffed Ziploc Bulk Bags — Loose Pour vs. Stud-Stacked Math</p>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <div class="grid-2">
+      <div>
+        <label for="containerSelect">1. Container / Bag Type</label>
+        <select id="containerSelect">
+          <option value="pab_large">LEGO Pick-a-Brick Box — Large (~1,850 cm³)</option>
+          <option value="pab_small">LEGO Pick-a-Brick Box — Small (~850 cm³)</option>
+          <option value="ziploc_quart">Stuffed Ziploc Quart Bag — Pillow Geometry (~1,150 cm³)</option>
+          <option value="ziploc_gallon">Stuffed Ziploc Gallon Bag — Pillow Geometry (~3,650 cm³)</option>
+          <option value="ziploc_sandwich">Stuffed Ziploc Sandwich Bag — Pillow Geometry (~760 cm³)</option>
+        </select>
+        <div class="note" id="containerNote"></div>
+      </div>
+
+      <div>
+        <label for="elementSelect">2. Bulk Element Type</label>
+        <select id="elementSelect"></select>
+        <div class="note" id="elementNote"></div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 0.9rem;">
+      <div>
+        <label for="partValueInput">3. Avg. Replacement Value per Piece ($)</label>
+        <input type="number" id="partValueInput" step="0.01" min="0.01" value="0.12" />
+        <div class="note">Typical BrickLink / online PaB price (auto-fills per element, editable)</div>
+      </div>
+
+      <div>
+        <label for="wageInput">4. Your Time Valuation ($ / Hour)</label>
+        <input type="number" id="wageInput" step="1" min="0" value="30" />
+        <div class="note">Enter your hourly wage (or salary ÷ 2,080) to test stacking ROI</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="results-grid">
+      <div class="stat-box">
+        <div class="stat-label">Loose Pour Count</div>
+        <div class="stat-val" id="looseCount">—</div>
+        <div class="stat-sub" id="looseSub">~2 min scoop &amp; shake</div>
+      </div>
+
+      <div class="stat-box highlight">
+        <div class="stat-label">Stud-Stacked Count</div>
+        <div class="stat-val" id="stackedCount">—</div>
+        <div class="stat-sub" id="stackedSub">Dense nested columns</div>
+      </div>
+
+      <div class="stat-box">
+        <div class="stat-label">Bonus Pieces Gained</div>
+        <div class="stat-val" id="bonusCount">—</div>
+        <div class="stat-sub" id="bonusValue">—</div>
+      </div>
+    </div>
+
+    <div id="verdictBox" class="verdict worth-it"></div>
+
+    <div class="tip-bar">
+      <div>
+        <strong>Saved money or time at the wall?</strong><br />
+        <span style="font-size:0.86rem; color:#78350f;">Keep BrickTeller free and ad-light with an optional tip.</span>
+      </div>
+      <!-- Replace href below with your actual Ko-fi or Buy Me a Coffee URL -->
+      <a class="tip-btn" href="https://ko-fi.com" target="_blank" rel="noopener">☕ Buy Me a Coffee</a>
+    </div>
+
+    <details>
+      <summary>How the Geometry &amp; Packing Math Works</summary>
+      <p>
+        <strong>Pillowed Ziploc Bag Volume:</strong> A flat rectangular pouch (width <em>W</em>, usable height <em>H</em> below the zipper track) does not inflate into a box. Using Mylar-balloon / biconvex lens inflation geometry, maximum enclosed volume approaches <code>V ≈ 0.21 × W × H × min(W, H)</code>, derated to 85% so the zipper seal holds without bursting.<br />
+        <strong>Packing Fractions (η):</strong> Standard 1×1 stud pitch is 8.0 mm × 8.0 mm × 9.6 mm (0.614 cm³). Loose random pouring achieves η ≈ 0.44–0.58 depending on aspect ratio (long plates tangle more than round tiles), whereas disciplined stacking achieves η ≈ 0.76–0.86 inside rigid boxes and η ≈ 0.68–0.78 inside curved bags.
+      </p>
+    </details>
+  </div>
+
+  <div class="card domains-footer">
+    <strong>Launching a Brick Shop, Rebrand, or Bulk Reselling Venture?</strong><br />
+    These brandable brick domains are currently available for instant transfer via Afternic:
+    <div class="domain-pills">
+      <a class="domain-pill" href="https://brickatory.com" target="_blank" rel="noopener">brickatory.com</a>
+      <a class="domain-pill" href="https://brickbounty.com" target="_blank" rel="noopener">brickbounty.com</a>
+      <a class="domain-pill" href="https://brickomat.com" target="_blank" rel="noopener">brickomat.com</a>
+      <a class="domain-pill" href="https://2x4shop.com" target="_blank" rel="noopener">2x4shop.com</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Usable internal volume in cm^3 and bag conformability factor
+  const CONTAINERS = {
+    pab_large: {
+      name: "Large PaB Cardboard Box",
+      vol: 1850,
+      bagPenalty: 1.0,
+      note: "Folded cardboard flaps reduce nominal outer box volume to ~1,850 cm³."
+    },
+    pab_small: {
+      name: "Small PaB Cardboard Box",
+      vol: 850,
+      bagPenalty: 1.0,
+      note: "Usable internal volume ~850 cm³ with closed top flaps."
+    },
+    ziploc_quart: {
+      name: "Stuffed Quart Freezer Bag",
+      vol: 1150,
+      bagPenalty: 0.90,
+      note: "17.5 × 18.0 cm usable pouch inflated to biconvex pillow lens (85% safe seal)."
+    },
+    ziploc_gallon: {
+      name: "Stuffed Gallon Freezer Bag",
+      vol: 3650,
+      bagPenalty: 0.92,
+      note: "26.5 × 25.0 cm usable pouch inflated to biconvex pillow lens (85% safe seal)."
+    },
+ziploc_sandwich: {
+name: "Stuffed Sandwich Bag",
+vol: 760,
+bagPenalty: 0.88,
+note: "16.5 × 14.5 cm usable pouch inflated to biconvex pillow lens (85% safe seal)."
+}
+};
+// V_solid in cm^3 (1x1 brick = 0.6144 cm^3), empirical etaLoose, etaStacked, secPerPieceStacked, defaultPrice
+const ELEMENTS = [
+{ id: "masonry_1x2", name: "1×2 Masonry / Profile Brick", v: 1.229, etaL: 0.50, etaS: 0.82, secPerPc: 2.2, price: 0.14, note: "High-value wall element; stacking yields huge gains." },
+{ id: "brick_1x2", name: "1×2 Standard Brick", v: 1.229, etaL: 0.51, etaS: 0.83, secPerPc: 2.0, price: 0.09, note: "Fast to snap into long columns." },
+{ id: "brick_2x4", name: "2×4 Standard Brick", v: 4.915, etaL: 0.47, etaS: 0.84, secPerPc: 2.8, price: 0.18, note: "Large elements waste huge space when poured loose." },
+{ id: "brick_1x4", name: "1×4 Standard Brick", v: 2.458, etaL: 0.46, etaS: 0.82, secPerPc: 2.4, price: 0.14, note: "Tangles badly if poured loose; easy to column-stack." },
+{ id: "plate_1x2", name: "1×2 Plate", v: 0.410, etaL: 0.53, etaS: 0.80, secPerPc: 1.9, price: 0.06, note: "Thin profile; moderate gain from stacking." },
+{ id: "plate_2x4", name: "2×4 Plate", v: 1.638, etaL: 0.45, etaS: 0.81, secPerPc: 2.3, price: 0.12, note: "Bridges awkwardly when loose; stacks cleanly." },
+{ id: "plate_1x6", name: "1×6 Plate", v: 1.229, etaL: 0.41, etaS: 0.79, secPerPc: 2.4, price: 0.11, note: "High aspect ratio causes severe loose-pour voids." },
+{ id: "tile_1x2", name: "1×2 Smooth Tile", v: 0.410, etaL: 0.57, etaS: 0.78, secPerPc: 3.2, price: 0.08, note: "No studs—must be hand-aligned edge-to-edge (slower)." },
+{ id: "tile_2x2", name: "2×2 Smooth Tile", v: 0.819, etaL: 0.54, etaS: 0.79, secPerPc: 3.4, price: 0.12, note: "Slippery to stack in tall towers without snapping." },
+{ id: "round_1x1", name: "1×1 Round Plate / Dot", v: 0.205, etaL: 0.60, etaS: 0.74, secPerPc: 1.8, price: 0.04, note: "Packs densely on its own; stacking rarely beats your hourly wage." },
+{ id: "cheese_1x1", name: "1×1 Cheese Slope (30°)", v: 0.250, etaL: 0.56, etaS: 0.72, secPerPc: 2.6, price: 0.06, note: "Cannot stack vertically; requires alternating nested pairs." },
+{ id: "snot_1x1", name: "1×1 Brick with Stud on Side (SNOT)", v: 0.650, etaL: 0.52, etaS: 0.79, secPerPc: 2.3, price: 0.11, note: "Side stud creates minor clearance gaps when stacked." }
+];
+const containerSelect = document.getElementById("containerSelect");
+const elementSelect = document.getElementById("elementSelect");
+const partValueInput = document.getElementById("partValueInput");
+const wageInput = document.getElementById("wageInput");
+ELEMENTS.forEach(el => {
+const opt = document.createElement("option");
+opt.value = el.id;
+opt.textContent = el.name;
+elementSelect.appendChild(opt);
+});
+function updatePartDefault() {
+const el = ELEMENTS.find(e => e.id === elementSelect.value);
+if (el) {
+partValueInput.value = el.price.toFixed(2);
+}
+calculate();
+}
+function calculate() {
+const cont = CONTAINERS[containerSelect.value];
+const el = ELEMENTS.find(e => e.id === elementSelect.value);
+const unitPrice = Math.max(0, parseFloat(partValueInput.value) || 0);
+const hourlyWage = Math.max(0, parseFloat(wageInput.value) || 0);
+document.getElementById("containerNote").textContent = cont.note;
+document.getElementById("elementNote").textContent = el.note;
+const looseCount = Math.floor((cont.vol * el.etaL) / el.v);
+const effectiveEtaS = el.etaS * cont.bagPenalty;
+const stackedCount = Math.floor((cont.vol * effectiveEtaS) / el.v);
+const bonusPieces = Math.max(0, stackedCount - looseCount);
+// Extra minutes spent carefully stacking vs. 2-minute loose scoop
+const extraMinutes = Math.max(1, Math.round((stackedCount * el.secPerPc) / 60));
+const bonusDollars = bonusPieces * unitPrice;
+const impliedHourlyRate = bonusDollars / (extraMinutes / 60);
+document.getElementById("looseCount").textContent = looseCount.toLocaleString();
+document.getElementById("looseSub").textContent = ~2 min loose fill ($${(looseCount * unitPrice).toFixed(2)} val);
+document.getElementById("stackedCount").textContent = stackedCount.toLocaleString();
+document.getElementById("stackedSub").textContent = ~${extraMinutes} min stacking ($${(stackedCount * unitPrice).toFixed(2)} val);
+document.getElementById("bonusCount").textContent = +${bonusPieces.toLocaleString()};
+document.getElementById("bonusValue").textContent = +$${bonusDollars.toFixed(2)} extra value;
+const verdictBox = document.getElementById("verdictBox");
+if (impliedHourlyRate >= hourlyWage) {
+verdictBox.className = "verdict worth-it";
+verdictBox.innerHTML = ✅ WORTH STACKING: Your ~${extraMinutes} mins of stacking yields +$${bonusDollars.toFixed(2)} in extra parts — an effective tax-free rate of <strong>$${impliedHourlyRate.toFixed(2)}/hr</strong> (beating your $${hourlyWage.toFixed(2)}/hr target).;
+} else {
+verdictBox.className = "verdict skip-it";
+verdictBox.innerHTML = ⏱️ POUR LOOSE &amp; GO: Stacking takes ~${extraMinutes} mins for +$${bonusDollars.toFixed(2)} in extra parts — only <strong>$${impliedHourlyRate.toFixed(2)}/hr</strong>, which is below your $${hourlyWage.toFixed(2)}/hr time value.;
+}
+}
+containerSelect.addEventListener("change", calculate);
+elementSelect.addEventListener("change", updatePartDefault);
+partValueInput.addEventListener("input", calculate);
+wageInput.addEventListener("input", calculate);
+updatePartDefault();
